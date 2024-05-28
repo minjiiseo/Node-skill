@@ -2,6 +2,7 @@ import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import jwtValidate from '../middlewares/require-access-token.middleware.js';
 
 const router = express.Router();
 
@@ -71,6 +72,19 @@ router.post('/sign-in', async (req, res) => {
 
   // AccessToken 반환
   res.status(200).json({ accessToken: token });
+});
+
+// 내 정보 조회 API
+router.get('/me', jwtValidate, async (req, res) => {
+  const user = req.user;
+  res.status(200).json({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });
 });
 
 export default router;
