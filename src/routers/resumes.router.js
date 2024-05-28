@@ -76,4 +76,88 @@ router.get('/resumes', jwtValidate, async (req, res) => {
   }
 });
 
+// 이력서 상세 조회 API
+router.get('/resumes/:resumeId', jwtValidate, async (req, res, next) => {
+  const userId = req.user.id;
+  const { resumeId } = req.params;
+
+  try {
+    const resume = await prisma.resume.findFirst({
+      where: {
+        resumeId: parseInt(resumeId),
+        UserId: userId,
+      },
+      include: {
+        Users: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!resume) {
+      return res.status(404).send('이력서가 존재하지 않습니다.');
+    }
+
+    res.status(200).json({
+      resumeId: resume.resumeId,
+      userName: resume.Users.name,
+      title: resume.title,
+      introduction: resume.introduction,
+      status: resume.status,
+      createdAt: resume.createdAt,
+      updatedAt: resume.updatedAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/resumes/:resumeId', jwtValidate, async (req, res, next) => {
+  const userId = req.user.id;
+  const { resumeId } = req.params;
+  const { title, introduction } = req.body;
+
+  if (!title && !introduction) {
+    return res.status(400).send('수정 할 정보를 입력해 주세요.');
+  }
+
+  try {
+    const resume = await prisma.resume.findFirst({
+      where: {
+        resumeId: parseInt(resumeId),
+        UserId: userId,
+      },
+    });
+
+    if (!resume) {
+      return res.status(404).send('이력서가 존재하지 않습니다.');
+    }
+
+    const updatedResume = await prisma.resume.update({
+      where: {
+        resumeId: parseInt(resumeId),
+      },
+      data: {
+        title: title || resume.title,
+        introduction: introduction || resume.introduction,
+        updatedAt: new Date(),
+      },
+    });
+
+    res.status(200).json({
+      resumeId: updatedResume.resumeId,
+      userId: updatedResume.UserId,
+      title: updatedResume.title,
+      introduction: updatedResume.introduction,
+      status: updatedResume.status,
+      createdAt: updatedResume.createdAt,
+      updatedAt: updatedResume.updatedAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
