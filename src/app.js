@@ -1,6 +1,9 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import UsersRouter from './routers/users.router.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
