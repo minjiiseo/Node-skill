@@ -9,6 +9,44 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model Users {
+  id             Int       @id  @default(autoincrement())  
+  name           String    @unique                         @map("name")
+  email          String    @unique                         @map("email")
+  password       String                                    @map("password")
+  passwordVe     String                                    @map("passwordVe")
+  role           String    @default("APPLICANT")           @map("role")
+  createdAt      DateTime  @default(now())                 @map("createdAt")
+  updatedAt      DateTime  @updatedAt                      @map("updatedAt")
+
+  userIdToResume Resume[]
+
+  @@map("Users")
+}
+
+model Resume {
+  UserId             Int                                       @map("UserId")
+  resumeId           Int       @id  @default(autoincrement())  @map("resumeId")
+  title              String                                    @map("title")
+  introduction       String                                    @map("introduction")
+  status             String    @default("APPLY")               @map("status")
+  createdAt          DateTime  @default(now())                 @map("createdAt")
+  updatedAt          DateTime  @updatedAt                      @map("updatedAt")
+
+  Users Users @relation(fields: [UserId], references: [id], onDelete: Cascade)
+
+  @@map("Resume")
+}
+
+enum applicationStatus {
+  APPLY
+  DROP
+  PASS
+  INTERVIEW1
+  INTERVIEW2
+  FINAL_PASS
 }
