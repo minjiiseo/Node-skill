@@ -160,4 +160,33 @@ router.put('/resumes/:resumeId', jwtValidate, async (req, res, next) => {
   }
 });
 
+// 이력서 삭제 API
+router.delete('/resumes/:resumeId', jwtValidate, async (req, res, next) => {
+  const userId = req.user.id;
+  const { resumeId } = req.params;
+
+  try {
+    const resume = await prisma.resume.findFirst({
+      where: {
+        resumeId: parseInt(resumeId),
+        UserId: userId,
+      },
+    });
+
+    if (!resume) {
+      return res.status(404).send('이력서가 존재하지 않습니다.');
+    }
+
+    await prisma.resume.delete({
+      where: {
+        resumeId: parseInt(resumeId),
+      },
+    });
+
+    res.status(200).json({ resumeId: parseInt(resumeId) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
